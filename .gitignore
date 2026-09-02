@@ -1,0 +1,39 @@
+# Python bytecode / caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Local environment variables / secrets
+.env
+.env.*
+!.env.example
+
+# IDE / editor files
+.vscode/
+.idea/
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Logs and coverage
+*.log
+.coverage
+htmlcov/
+
+# Generated ML artifacts
+*.pt
+*.pth
+*.ckpt
+
+# Local archives / backups
+*.zip

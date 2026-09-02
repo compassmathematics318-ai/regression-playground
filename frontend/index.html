@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Interactive PyTorch regression playground for training, testing, and exporting regression models" />
+  <title>Regression Playground</title>
+  <link rel="icon" href="data:," />
+  <script src="/static/theme.js"></script><link rel="stylesheet" href="/static/style.css" />
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+<div class="page-shell">
+    
+    <!-- ================================================================ -->
+    <!-- HOME / MODEL SELECTION                                           -->
+    <!-- ================================================================ -->
+    <section id="homeView" class="home-view" aria-labelledby="homeTitle">
+      <div class="home-theme-control">
+        <button class="theme-toggle-button" type="button" data-theme-toggle aria-label="Switch theme">
+          <span class="theme-toggle-icon" data-theme-icon aria-hidden="true">☀</span>
+          <span data-theme-label>Light</span>
+        </button>
+      </div>
+      <div class="home-hero">
+        <p class="home-eyebrow">PYTORCH • GRADIENT DESCENT • INTERACTIVE</p>
+        <h1 id="homeTitle">Regression <span>Playground</span></h1>
+        <p class="home-copy">
+          Choose a regression model, build an experiment, and watch PyTorch learn
+          its parameters through gradient descent. Train it, test it on new inputs,
+          then export the exact experiment as runnable code.
+        </p>
+      </div>
+
+      <div class="model-choice-grid" aria-label="Choose a regression model">
+        <button id="linearChoiceButton" class="model-choice-card linear-choice" type="button">
+          <span class="choice-top-row">
+            <span class="choice-kicker">LINEAR REGRESSION</span>
+            <span class="choice-status ready">Ready</span>
+          </span>
+
+          <span class="choice-equation" aria-label="y equals A x plus B">
+            y = <strong>A</strong>x + <strong>B</strong>
+          </span>
+
+          <span class="choice-title">Linear Regression</span>
+          <span class="choice-copy">
+            Learn the slope and intercept of a straight line while watching
+            optimization unfold epoch by epoch.
+          </span>
+
+          <span class="choice-action">
+            Open playground
+            <span aria-hidden="true">→</span>
+          </span>
+        </button>
+
+        <button id="quadraticChoiceButton" class="model-choice-card quadratic-choice" type="button">
+          <span class="choice-top-row">
+            <span class="choice-kicker">QUADRATIC REGRESSION</span>
+            <span class="choice-status ready">Ready</span>
+          </span>
+
+          <span class="choice-equation" aria-label="y equals A x squared plus B x plus C">
+            y = <strong>A</strong>x² + <strong>B</strong>x + <strong>C</strong>
+          </span>
+
+          <span class="choice-title">Quadratic Regression</span>
+          <span class="choice-copy">
+            Learn three coefficients of a parabola, compare predictions with the
+            target curve, test new x-values, and export the PyTorch experiment.
+          </span>
+
+          <span class="choice-action">
+            Open playground
+            <span aria-hidden="true">→</span>
+          </span>
+        </button>
+      </div>
+
+      <div class="home-purpose-card" aria-label="What you can do in Regression Playground">
+        <div>
+          <span class="purpose-number">01</span>
+          <strong>Train</strong>
+          <p>Choose targets, starting parameters, a loss function, and an optimizer.</p>
+        </div>
+        <div>
+          <span class="purpose-number">02</span>
+          <strong>Test</strong>
+          <p>Evaluate the learned model on new x-values without changing its parameters.</p>
+        </div>
+        <div>
+          <span class="purpose-number">03</span>
+          <strong>Export</strong>
+          <p>Inspect and download standalone PyTorch code for the completed experiment.</p>
+        </div>
+      </div>
+
+      <footer class="home-footer">
+        <span>Built to make regression training visible, interactive, and reproducible.</span>
+        <span>PyTorch + FastAPI + vanilla JavaScript.</span>
+      </footer>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- QUADRATIC PLAYGROUND                                              -->
+    <!-- ================================================================ -->
+    <div id="quadraticPlayground" class="hidden">
+      <div class="playground-nav">
+        <button id="backHomeButton" class="back-home-button" type="button">
+          <span aria-hidden="true">←</span>
+          Regression Playground
+        </button>
+        <div class="playground-nav-actions">
+          <span class="playground-current">Quadratic Regression</span>
+          <button class="theme-toggle-button" type="button" data-theme-toggle aria-label="Switch theme">
+          <span class="theme-toggle-icon" data-theme-icon aria-hidden="true">☀</span>
+          <span data-theme-label>Light</span>
+        </button>
+        </div>
+      </div>
+
+    <header class="hero">
+      <div class="hero-main">
+        <p class="eyebrow">PYTORCH • GRADIENT DESCENT • INTERACTIVE</p>
+        <h1>Quadratic Regression Playground</h1>
+        <p class="hero-copy">
+          Choose a target quadratic, initialize a model, and watch gradient descent
+          learn <span class="math">A</span>, <span class="math">B</span>, and
+          <span class="math">C</span> epoch by epoch.
+        </p>
+
+        <div class="mode-switcher" role="tablist" aria-label="Playground mode">
+          <button id="trainModeButton" class="mode-button active" type="button" role="tab" aria-selected="true">
+            <span class="mode-icon">↗</span>
+            <span>
+              <strong>Train Model</strong>
+              <small>Learn A, B, C</small>
+            </span>
+          </button>
+          <button id="testModeButton" class="mode-button" type="button" role="tab" aria-selected="false">
+            <span class="mode-icon">◎</span>
+            <span>
+              <strong>Test Model</strong>
+              <small>Test with new x-values</small>
+            </span>
+            <i id="testReadyDot" class="ready-dot" aria-hidden="true"></i>
+          </button>
+          <button id="exportModeButton" class="mode-button" type="button" role="tab" aria-selected="false">
+            <span class="mode-icon">&lt;/&gt;</span>
+            <span>
+              <strong>Export</strong>
+              <small>Code &amp; model</small>
+            </span>
+            <i id="exportReadyDot" class="ready-dot" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="equation-card" aria-label="Quadratic equation">
+        <span>y =</span>
+        <strong>A</strong><span>x² +</span>
+        <strong>B</strong><span>x +</span>
+        <strong>C</strong>
+      </div>
+    </header>
+
+    <!-- ================================================================ -->
+    <!-- TRAIN MODE                                                       -->
+    <!-- ================================================================ -->
+    <section id="trainView" class="mode-view">
+      <main class="app-grid">
+        <aside class="control-panel card">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">EXPERIMENT</p>
+              <h2>Training setup</h2>
+            </div>
+            <button id="resetButton" class="text-button" type="button">Reset</button>
+          </div>
+
+          <form id="trainingForm">
+            <fieldset>
+              <legend>Target equation</legend>
+              <p class="field-help">These coefficients generate the green training points.</p>
+              <div class="three-column-inputs">
+                <label>
+                  <span>A</span>
+                  <input id="trueA" type="number" step="any" value="3" required />
+                </label>
+                <label>
+                  <span>B</span>
+                  <input id="trueB" type="number" step="any" value="1" required />
+                </label>
+                <label>
+                  <span>C</span>
+                  <input id="trueC" type="number" step="any" value="-1" required />
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <div class="legend-row">
+                <legend>Starting parameters</legend>
+                <label class="toggle-label" title="Let PyTorch randomly initialize A, B, and C">
+                  <input id="randomInit" type="checkbox" />
+                  <span class="toggle"></span>
+                  <span>Random</span>
+                </label>
+              </div>
+              <p class="field-help">The model begins here before epoch 1.</p>
+              <div class="three-column-inputs">
+                <label>
+                  <span>A₀</span>
+                  <input id="initialA" type="number" step="any" value="0" />
+                </label>
+                <label>
+                  <span>B₀</span>
+                  <input id="initialB" type="number" step="any" value="0" />
+                </label>
+                <label>
+                  <span>C₀</span>
+                  <input id="initialC" type="number" step="any" value="0" />
+                </label>
+              </div>
+              <label class="full-width-field">
+                <span>Random seed <small class="optional-label">optional</small></span>
+                <input id="seed" type="number" step="1" placeholder="Enable Random to use a seed" disabled />
+              </label>
+            </fieldset>
+
+            <fieldset>
+              <legend>Loss function</legend>
+              <p class="field-help">Defines how prediction errors are turned into the value gradient descent tries to minimize.</p>
+              <label class="full-width-field compact-top">
+                <span>Loss</span>
+                <select id="lossFunction">
+                  <option value="l1" selected>L1 Loss (MAE-style)</option>
+                  <option value="mse">MSE Loss</option>
+                  <option value="smooth_l1">Smooth L1 Loss</option>
+                  <option value="huber">Huber Loss</option>
+                </select>
+              </label>
+              <p id="lossFunctionHelp" class="selection-help"></p>
+
+              <div id="smoothL1Options" class="conditional-options hidden">
+                <label class="full-width-field compact-top">
+                  <span class="field-label-with-info">
+                    Beta
+                    <span class="info-tooltip" tabindex="0" aria-label="About Smooth L1 beta">
+                      <span class="info-icon" aria-hidden="true">i</span>
+                      <span class="tooltip-bubble" role="tooltip">
+                        Beta sets the error size where Smooth L1 changes behavior. Errors smaller than beta are treated quadratically; larger errors behave more like L1. A larger beta makes the quadratic region wider.
+                      </span>
+                    </span>
+                  </span>
+                  <input id="smoothL1Beta" type="number" min="0.000001" step="any" value="1" />
+                </label>
+              </div>
+
+              <div id="huberOptions" class="conditional-options hidden">
+                <label class="full-width-field compact-top">
+                  <span class="field-label-with-info">
+                    Delta
+                    <span class="info-tooltip" tabindex="0" aria-label="About Huber delta">
+                      <span class="info-icon" aria-hidden="true">i</span>
+                      <span class="tooltip-bubble" role="tooltip">
+                        Delta sets the error threshold for Huber loss. Errors smaller than delta use squared-error behavior; larger errors grow linearly, reducing the influence of large errors and outliers.
+                      </span>
+                    </span>
+                  </span>
+                  <input id="huberDelta" type="number" min="0.000001" step="any" value="1" />
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>Optimizer</legend>
+              <p class="field-help">Controls how PyTorch uses the gradients to update A, B, and C.</p>
+              <label class="full-width-field compact-top">
+                <span>Optimizer</span>
+                <select id="optimizerSelect">
+                  <option value="sgd" selected>SGD</option>
+                  <option value="adam">Adam</option>
+                  <option value="adamw">AdamW</option>
+                  <option value="rmsprop">RMSprop</option>
+                  <option value="adagrad">Adagrad</option>
+                </select>
+              </label>
+              <p id="optimizerHelp" class="selection-help"></p>
+
+              <div class="two-column-inputs optimizer-common-grid">
+                <label>
+                  <span class="field-label-with-info">
+                    Learning rate
+                    <span class="info-tooltip" tabindex="0" aria-label="About learning rate">
+                      <span class="info-icon" aria-hidden="true">i</span>
+                      <span class="tooltip-bubble" role="tooltip">
+                        Controls the size of each optimizer update. A larger value can learn faster but may overshoot or become unstable; a smaller value makes more cautious updates.
+                      </span>
+                    </span>
+                  </span>
+                  <input id="learningRate" type="number" min="0.00000001" step="any" value="0.01" required />
+                </label>
+                <label>
+                  <span class="field-label-with-info">
+                    Weight decay
+                    <span class="info-tooltip" tabindex="0" aria-label="About weight decay">
+                      <span class="info-icon" aria-hidden="true">i</span>
+                      <span class="tooltip-bubble" role="tooltip">
+                        Discourages the model parameters from becoming unnecessarily large during optimization. A value of 0 turns weight decay off.
+                      </span>
+                    </span>
+                  </span>
+                  <input id="weightDecay" type="number" min="0" step="any" value="0" required />
+                </label>
+              </div>
+
+              <div id="sgdOptions" class="conditional-options">
+                <div class="option-panel-title">SGD options</div>
+                <div class="two-column-inputs">
+                  <label>
+                    <span class="field-label-with-info">
+                    Momentum
+                    <span class="info-tooltip" tabindex="0" aria-label="About SGD momentum">
+                      <span class="info-icon" aria-hidden="true">i</span>
+                      <span class="tooltip-bubble" role="tooltip">
+                        Carries some of the previous update direction into the next step. This can smooth noisy updates and help SGD move more consistently. A value of 0 disables momentum.
+                      </span>
+                    </span>
+                  </span>
+                    <input id="sgdMomentum" type="number" min="0" step="any" value="0" />
+                  </label>
+                  <label class="checkbox-field">
+                    <span class="field-label-with-info">
+                    Nesterov
+                    <span class="info-tooltip" tabindex="0" aria-label="About Nesterov momentum">
+                      <span class="info-icon" aria-hidden="true">i</span>
+                      <span class="tooltip-bubble" role="tooltip">
+                        A momentum variant that calculates the gradient from a look-ahead position before making the update. It requires momentum to be greater than 0.
+                      </span>
+                    </span>
+                  </span>
+                    <input id="sgdNesterov" type="checkbox" />
+                  </label>
+                </div>
+              </div>
+
+              <div id="adamOptions" class="conditional-options hidden">
+                <div class="option-panel-title">Adam-family options</div>
+                <div class="two-column-inputs">
+                  <label>
+                    <span class="field-label-with-info">
+                    β₁
+                    <span class="info-tooltip" tabindex="0" aria-label="About Adam beta one">
+                      <span class="info-icon" aria-hidden="true">i</span>
+                      <span class="tooltip-bubble" role="tooltip">
+                        Controls how strongly Adam remembers past gradients when estimating the update direction. Values closer to 1 give the moving average a longer memory.
+                      </span>
+                    </span>
+                  </span>
+                    <input id="adamBeta1" type="number" min="0.000001" max="0.999999" step="any" value="0.9" />
+                  </label>
+                  <label>
+                    <span class="field-label-with-info">
+                    β₂
+                    <span class="info-tooltip" tabindex="0" aria-label="About Adam beta two">
+                      <span class="info-icon" aria-hidden="true">i</span>
+                      <span class="tooltip-bubble" role="tooltip">
+                        Controls how strongly Adam remembers past squared gradients, which it uses to scale each parameter's step size. Values closer to 1 give this estimate a longer memory.
+                      </span>
+                    </span>
+                  </span>
+                    <input id="adamBeta2" type="number" min="0.000001" max="0.999999" step="any" value="0.999" />
+                  </label>
+                </div>
+                <label class="checkbox-inline-field">
+                  <input id="adamAmsgrad" type="checkbox" />
+                  <span class="checkbox-label-with-info">
+                    <span>Use AMSGrad variant</span>
+                    <span class="info-tooltip" tabindex="0" aria-label="About AMSGrad">
+                      <span class="info-icon" aria-hidden="true">i</span>
+                      <span class="tooltip-bubble" role="tooltip">
+                        AMSGrad modifies Adam by keeping the largest second-moment estimate seen so far. This can make step-size scaling more conservative and improve stability in some cases.
+                      </span>
+                    </span>
+                  </span>
+                </label>
+              </div>
+
+              <div id="rmspropOptions" class="conditional-options hidden">
+                <div class="option-panel-title">RMSprop options</div>
+                <div class="two-column-inputs">
+                  <label>
+                    <span class="field-label-with-info">
+                    Alpha
+                    <span class="info-tooltip" tabindex="0" aria-label="About RMSprop alpha">
+                      <span class="info-icon" aria-hidden="true">i</span>
+                      <span class="tooltip-bubble" role="tooltip">
+                        Controls how much RMSprop remembers past squared gradients when estimating their moving average. Values closer to 1 give that average a longer memory.
+                      </span>
+                    </span>
+                  </span>
+                    <input id="rmspropAlpha" type="number" min="0.000001" max="1" step="any" value="0.99" />
+                  </label>
+                  <label>
+                    <span class="field-label-with-info">
+                    Momentum
+                    <span class="info-tooltip" tabindex="0" aria-label="About RMSprop momentum">
+                      <span class="info-icon" aria-hidden="true">i</span>
+                      <span class="tooltip-bubble" role="tooltip">
+                        Carries part of the previous update direction into the next step. This can smooth the optimization path and help updates move more consistently. A value of 0 disables momentum.
+                      </span>
+                    </span>
+                  </span>
+                    <input id="rmspropMomentum" type="number" min="0" step="any" value="0" />
+                  </label>
+                </div>
+                <label class="checkbox-inline-field">
+                  <input id="rmspropCentered" type="checkbox" />
+                  <span class="checkbox-label-with-info">
+                    <span>Use centered RMSprop</span>
+                    <span class="info-tooltip" tabindex="0" aria-label="About centered RMSprop">
+                      <span class="info-icon" aria-hidden="true">i</span>
+                      <span class="tooltip-bubble" role="tooltip">
+                        Centered RMSprop also tracks the moving average of the gradients themselves, then uses it to estimate gradient variance. This slightly changes how the adaptive step size is scaled.
+                      </span>
+                    </span>
+                  </span>
+                </label>
+              </div>
+
+              <div id="adagradOptions" class="conditional-options hidden">
+                <div class="option-panel-title">Adagrad options</div>
+                <label class="full-width-field compact-top">
+                  <span class="field-label-with-info">
+                    Learning-rate decay
+                    <span class="info-tooltip" tabindex="0" aria-label="About Adagrad learning-rate decay">
+                      <span class="info-icon" aria-hidden="true">i</span>
+                      <span class="tooltip-bubble" role="tooltip">
+                        Gradually reduces Adagrad's base learning rate as training proceeds. A value of 0 leaves this additional decay disabled.
+                      </span>
+                    </span>
+                  </span>
+                  <input id="adagradLrDecay" type="number" min="0" step="any" value="0" />
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>Training run</legend>
+              <label class="full-width-field compact-top">
+                <span>Epochs</span>
+                <input id="epochs" type="number" min="1" max="20000" step="1" value="1000" required />
+              </label>
+            </fieldset>
+
+            <button id="trainButton" class="primary-button" type="submit">
+              <span class="button-dot" aria-hidden="true"></span>
+              <span id="trainButtonText">Train model</span>
+            </button>
+            <p id="formMessage" class="form-message" role="status" aria-live="polite"></p>
+          </form>
+        </aside>
+
+        <section class="workspace">
+          <section class="card graph-card">
+            <div class="card-heading-row">
+              <div>
+                <p class="section-kicker">MODEL FIT</p>
+                <h2>Learning from training data</h2>
+              </div>
+              <div class="legend" aria-label="Chart legend">
+                <span class="legend-item">
+                  <i class="legend-line true-line"></i>
+                  <span class="legend-label">Target curve</span>
+                  <span class="info-tooltip" tabindex="0" aria-label="About the target curve">
+                    <span class="info-icon" aria-hidden="true">i</span>
+                    <span class="tooltip-bubble" role="tooltip">
+                      The theoretically correct curve generated by the target A, B, and C. Starting from A₀, B₀, and C₀, gradient descent updates the model toward these target values.
+                    </span>
+                  </span>
+                </span>
+
+                <span class="legend-item">
+                  <i class="legend-line prediction-line"></i>
+                  <span class="legend-label">Current Predictions</span>
+                  <span class="info-tooltip" tabindex="0" aria-label="About the current predictions">
+                    <span class="info-icon" aria-hidden="true">i</span>
+                    <span class="tooltip-bubble" role="tooltip">
+                      The curve generated by the model's currently learned A, B, and C. It changes each epoch as gradient descent updates those coefficients.
+                    </span>
+                  </span>
+                </span>
+
+                <span class="legend-item">
+                  <i class="legend-dot train-dot"></i>
+                  <span class="legend-label">Training Data</span>
+                  <span class="info-tooltip" tabindex="0" aria-label="About the training data">
+                    <span class="info-icon" aria-hidden="true">i</span>
+                    <span class="tooltip-bubble" role="tooltip">
+                      Each green point is a training example: its x-coordinate is an input given to the model, and its y-coordinate is the correct target output. The difference between the model's prediction and that target helps gradient descent update A, B, and C.
+                    </span>
+                  </span>
+                </span>
+              </div>
+            </div>
+
+            <div class="canvas-wrap large-canvas">
+              <canvas id="fitCanvas" aria-label="Quadratic regression training plot"></canvas>
+              <div id="fitPlaceholder" class="canvas-placeholder">
+                <div class="placeholder-orbit">∿</div>
+                <p>Run an experiment to watch the model learn.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="metrics-grid">
+            <article class="card status-card">
+              <div class="card-heading-row compact">
+                <div>
+                  <p class="section-kicker">TRAINING STATUS</p>
+                  <h2 id="epochLabel">Ready</h2>
+                </div>
+                <span id="statusBadge" class="status-badge idle">Idle</span>
+              </div>
+
+              <div class="parameter-table">
+                <div class="parameter-row parameter-header">
+                  <span></span><span>Target</span><span>Current</span><span>Error</span>
+                </div>
+                <div class="parameter-row">
+                  <strong>A</strong><span id="targetAValue">—</span><span id="currentAValue">—</span><span id="errorAValue">—</span>
+                </div>
+                <div class="parameter-row">
+                  <strong>B</strong><span id="targetBValue">—</span><span id="currentBValue">—</span><span id="errorBValue">—</span>
+                </div>
+                <div class="parameter-row">
+                  <strong>C</strong><span id="targetCValue">—</span><span id="currentCValue">—</span><span id="errorCValue">—</span>
+                </div>
+              </div>
+
+              <div class="loss-readout single-loss-readout">
+                <div>
+                  <span>Training loss</span>
+                  <strong id="trainLossValue">—</strong>
+                </div>
+              </div>
+            </article>
+
+            <article class="card loss-card">
+              <div class="card-heading-row compact">
+                <div>
+                  <p class="section-kicker">OPTIMIZATION</p>
+                  <h2>Training loss history</h2>
+                </div>
+                <div class="loss-legend">
+                  <span><i class="legend-line train-loss-line"></i>Training Loss</span>
+                </div>
+              </div>
+              <div class="canvas-wrap small-canvas">
+                <canvas id="lossCanvas" aria-label="Training loss chart"></canvas>
+                <div id="lossPlaceholder" class="canvas-placeholder small"><p>Loss will appear here.</p></div>
+              </div>
+            </article>
+          </section>
+
+          <section class="card playback-card">
+            <div class="timeline-row">
+              <span id="timelineStart">0</span>
+              <input id="epochSlider" type="range" min="0" max="0" value="0" disabled />
+              <span id="timelineEnd">0</span>
+            </div>
+            <div class="playback-controls">
+              <div class="button-group">
+                <button id="firstButton" class="icon-button" type="button" title="First frame" disabled>↤</button>
+                <button id="previousButton" class="icon-button" type="button" title="Previous epoch" disabled>←</button>
+                <button id="playPauseButton" class="play-button" type="button" disabled>
+                  <span id="playPauseIcon">▶</span><span id="playPauseText">Play</span>
+                </button>
+                <button id="nextButton" class="icon-button" type="button" title="Next epoch" disabled>→</button>
+                <button id="lastButton" class="icon-button" type="button" title="Last frame" disabled>↦</button>
+              </div>
+              <label class="speed-control">
+                <span>Playback</span>
+                <select id="speedSelect" disabled>
+                  <option value="600">0.5×</option>
+                  <option value="300" selected>1×</option>
+                  <option value="150">2×</option>
+                  <option value="75">4×</option>
+                  <option value="30">10×</option>
+                </select>
+              </label>
+            </div>
+          </section>
+        </section>
+      </main>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- TEST MODE                                                        -->
+    <!-- ================================================================ -->
+    <section id="testView" class="mode-view hidden">
+      <main class="app-grid">
+        <aside class="control-panel card test-control-panel">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">EVALUATION</p>
+              <h2>Test setup</h2>
+            </div>
+            <button id="clearTestButton" class="text-button" type="button">Clear</button>
+          </div>
+
+          <div id="noModelNotice" class="notice-card">
+            <strong>No trained model yet.</strong>
+            <p>Train a model first, then come back here to evaluate it on unseen x-values.</p>
+            <button id="goTrainButton" type="button" class="secondary-button">Go to training</button>
+          </div>
+
+          <form id="testForm" class="hidden">
+            <fieldset>
+              <legend>Training snapshot</legend>
+              <p id="testSnapshotHelp" class="field-help">Testing uses the exact A, B, and C from the training epoch you were viewing when you entered Test Model.</p>
+              <div class="mini-parameter-grid">
+                <div><span>A</span><strong id="testModelA">—</strong></div>
+                <div><span>B</span><strong id="testModelB">—</strong></div>
+                <div><span>C</span><strong id="testModelC">—</strong></div>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend class="legend-with-info">
+                <span>Choose test x-values</span>
+                <span class="info-tooltip" tabindex="0" aria-label="About choosing test x-values">
+                  <span class="info-icon" aria-hidden="true">i</span>
+                  <span class="tooltip-bubble" role="tooltip">
+                    Choose your own x-values or generate them randomly, then feed them into the trained model and compare its predictions with the true quadratic. It’s a quick way to see how well the model handles new inputs.
+                  </span>
+                </span>
+              </legend>
+              <div class="input-mode-tabs" role="tablist" aria-label="Test input method">
+                <button id="manualInputButton" class="input-mode-button active" type="button">Manual values</button>
+                <button id="randomInputButton" class="input-mode-button" type="button">Random values</button>
+              </div>
+
+              <div id="manualInputPanel" class="test-input-panel">
+                <label>
+                  <span>x-values</span>
+                  <textarea id="manualXValues" rows="6" placeholder="Try: -1, -0.5, 0, 0.25, 0.8, 1, 1.5, 2">-1, -0.5, 0, 0.25, 0.8, 1, 1.5, 2</textarea>
+                </label>
+                <p class="field-help">Separate values with commas, spaces, or new lines. Up to 1,000 values.</p>
+              </div>
+
+              <div id="randomInputPanel" class="test-input-panel hidden">
+                <label class="full-width-field no-top-margin">
+                  <span>Number of random values</span>
+                  <input id="randomCount" type="number" min="1" max="1000" step="1" value="100" />
+                </label>
+                <div class="two-column-inputs test-range-inputs">
+                  <label>
+                    <span>Minimum x</span>
+                    <input id="randomXMin" type="number" step="any" value="-1" />
+                  </label>
+                  <label>
+                    <span>Maximum x</span>
+                    <input id="randomXMax" type="number" step="any" value="2" />
+                  </label>
+                </div>
+                <label class="full-width-field">
+                  <span>Random seed <small class="optional-label">optional</small></span>
+                  <input id="testSeed" type="number" step="1" placeholder="Optional" />
+                </label>
+              </div>
+            </fieldset>
+
+            <button id="runTestButton" class="primary-button test-primary-button" type="submit">
+              <span class="button-dot" aria-hidden="true"></span>
+              <span id="runTestButtonText">Run test</span>
+            </button>
+            <p id="testMessage" class="form-message" role="status" aria-live="polite"></p>
+          </form>
+        </aside>
+
+        <section class="workspace">
+          <section class="card graph-card">
+            <div class="card-heading-row">
+              <div>
+                <p class="section-kicker">GENERALIZATION</p>
+                <h2>Model vs. Theoretical Curve</h2>
+              </div>
+              <div class="legend" aria-label="Test chart legend">
+                <span class="legend-item">
+                  <i class="legend-line true-line"></i>
+                  <span class="legend-label">Target Curve</span>
+                  <span class="info-tooltip" tabindex="0" aria-label="About the target curve">
+                    <span class="info-icon" aria-hidden="true">i</span>
+                    <span class="tooltip-bubble" role="tooltip">
+                      The theoretically correct quadratic generated by the target A, B, and C values. This is the curve your trained model is aiming to match on new x-values.
+                    </span>
+                  </span>
+                </span>
+
+                <span class="legend-item">
+                  <i class="legend-line prediction-line"></i>
+                  <span class="legend-label">Current Predictions</span>
+                  <span class="info-tooltip" tabindex="0" aria-label="About the current predictions">
+                    <span class="info-icon" aria-hidden="true">i</span>
+                    <span class="tooltip-bubble" role="tooltip">
+                      The quadratic produced by the model's currently learned A, B, and C values. Comparing it with the target curve shows how closely the trained model matches new inputs.
+                    </span>
+                  </span>
+                </span>
+
+                <span class="legend-item">
+                  <i class="legend-dot test-dot"></i>
+                  <span class="legend-label">Target y</span>
+                  <span class="info-tooltip" tabindex="0" aria-label="About target y values">
+                    <span class="info-icon" aria-hidden="true">i</span>
+                    <span class="tooltip-bubble" role="tooltip">
+                      The theoretically correct y-values at the selected test x-values. These are the reference outputs used to see how closely the trained model matches the target quadratic.
+                    </span>
+                  </span>
+                </span>
+
+                <span class="legend-item">
+                  <i class="legend-dot prediction-dot"></i>
+                  <span class="legend-label">Predicted y</span>
+                  <span class="info-tooltip" tabindex="0" aria-label="About predicted y values">
+                    <span class="info-icon" aria-hidden="true">i</span>
+                    <span class="tooltip-bubble" role="tooltip">
+                      The y-values produced by the current model at those same test x-values, using its learned A, B, and C coefficients.
+                    </span>
+                  </span>
+                </span>
+              </div>
+            </div>
+
+            <div class="canvas-wrap large-canvas">
+              <canvas id="testCanvas" aria-label="Quadratic regression test plot"></canvas>
+              <div id="testPlaceholder" class="canvas-placeholder">
+                <div class="placeholder-orbit test-orbit">◎</div>
+                <p id="testPlaceholderText">Train a model, then evaluate it on new x-values.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="metrics-grid test-metrics-grid">
+            <article class="card status-card">
+              <div class="card-heading-row compact">
+                <div>
+                  <p class="section-kicker">TEST PERFORMANCE / ERROR METRICS</p>
+                  <h2 id="testCountLabel">Waiting for data</h2>
+                </div>
+                <span id="testStatusBadge" class="status-badge idle">Idle</span>
+              </div>
+
+              <div class="metric-tiles">
+                <div class="metric-tile">
+                  <div class="metric-label-with-info">
+                    <span>MAE</span>
+                    <span class="info-tooltip" tabindex="0" aria-label="About mean absolute error">
+                      <span class="info-icon" aria-hidden="true">i</span>
+                      <span class="tooltip-bubble" role="tooltip">
+                        Mean Absolute Error averages the absolute difference between each predicted y-value and its target y-value.
+                      </span>
+                    </span>
+                  </div>
+                  <strong id="maeValue">—</strong>
+                </div>
+
+                <div class="metric-tile">
+                  <div class="metric-label-with-info">
+                    <span>RMSE</span>
+                    <span class="info-tooltip" tabindex="0" aria-label="About root mean squared error">
+                      <span class="info-icon" aria-hidden="true">i</span>
+                      <span class="tooltip-bubble" role="tooltip">
+                        Root Mean Squared Error is the square root of MSE. It emphasizes larger misses while keeping the result in the same units as y.
+                      </span>
+                    </span>
+                  </div>
+                  <strong id="rmseValue">—</strong>
+                </div>
+
+                <div class="metric-tile">
+                  <div class="metric-label-with-info">
+                    <span>MSE</span>
+                    <span class="info-tooltip" tabindex="0" aria-label="About mean squared error">
+                      <span class="info-icon" aria-hidden="true">i</span>
+                      <span class="tooltip-bubble" role="tooltip">
+                        Mean Squared Error averages the squared difference between predicted and target y-values, so larger errors are penalized more strongly.
+                      </span>
+                    </span>
+                  </div>
+                  <strong id="mseValue">—</strong>
+                </div>
+
+                <div class="metric-tile">
+                  <div class="metric-label-with-info">
+                    <span>Max |Error|</span>
+                    <span class="info-tooltip" tabindex="0" aria-label="About maximum absolute error">
+                      <span class="info-icon" aria-hidden="true">i</span>
+                      <span class="tooltip-bubble" role="tooltip">
+                        The largest absolute difference between a predicted y-value and its target y-value across all tested points.
+                      </span>
+                    </span>
+                  </div>
+                  <strong id="maxErrorValue">—</strong>
+                </div>
+              </div>
+            </article>
+
+            <article class="card status-card">
+              <div class="card-heading-row compact">
+                <div>
+                  <p class="section-kicker">MODEL SNAPSHOT</p>
+                  <h2>What are we testing?</h2>
+                </div>
+              </div>
+              <div class="parameter-table">
+                <div class="parameter-row parameter-header">
+                  <span></span><span>Target</span><span>Learned</span><span>Error</span>
+                </div>
+                <div class="parameter-row">
+                  <strong>A</strong><span id="testTargetA">—</span><span id="testLearnedA">—</span><span id="testErrorA">—</span>
+                </div>
+                <div class="parameter-row">
+                  <strong>B</strong><span id="testTargetB">—</span><span id="testLearnedB">—</span><span id="testErrorB">—</span>
+                </div>
+                <div class="parameter-row">
+                  <strong>C</strong><span id="testTargetC">—</span><span id="testLearnedC">—</span><span id="testErrorC">—</span>
+                </div>
+              </div>
+              <p class="snapshot-note">Test mode never updates these parameters. It only measures how well the trained model predicts new inputs.</p>
+            </article>
+          </section>
+
+          <section class="card results-card">
+            <div class="card-heading-row compact results-heading">
+              <div>
+                <p class="section-kicker">POINT-BY-POINT</p>
+                <h2>Test results</h2>
+              </div>
+              <span id="tableCount" class="table-count">No results yet</span>
+            </div>
+            <div class="results-table-wrap">
+              <table class="results-table">
+                <thead>
+                  <tr><th>x</th><th>Target y</th><th>Predicted y</th><th>Error</th><th>|Error|</th></tr>
+                </thead>
+                <tbody id="resultsTableBody">
+                  <tr class="empty-table-row"><td colspan="5">Run a test to inspect predictions.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </section>
+      </main>
+    </section>
+
+    <!-- ================================================================ -->
+    <!-- EXPORT MODE                                                      -->
+    <!-- ================================================================ -->
+    <section id="exportView" class="mode-view hidden">
+      <main class="export-grid">
+        <aside class="card export-summary-card">
+          <div class="section-heading">
+            <div>
+              <p class="section-kicker">EXPORT</p>
+              <h2>Take the experiment with you</h2>
+            </div>
+          </div>
+
+          <p class="export-intro">
+            This page turns your completed training run into a standalone PyTorch
+            script that you can inspect, download, and run yourself in Google Colab,
+            Jupyter, VS Code, or another Python environment.
+          </p>
+
+          <div class="export-trust-note">
+            <strong>What gets reproduced?</strong>
+            <p>
+              The script uses the exact target coefficients, realized starting
+              A/B/C values, selected loss, optimizer settings, and epoch count from
+              your latest completed training run. It also saves the trained
+              <code>state_dict()</code> when the script finishes.
+            </p>
+          </div>
+
+          <div id="noExportNotice" class="notice-card">
+            <strong>No completed training run yet.</strong>
+            <p>Train a model first. Once training finishes, its exact experiment settings can be exported as PyTorch code.</p>
+            <button id="goTrainFromExportButton" type="button" class="secondary-button">Go to training</button>
+          </div>
+
+          <div id="exportSummary" class="export-summary hidden">
+            <div class="export-summary-heading">
+              <span>Latest completed run</span>
+              <span id="exportSummaryStatus" class="status-badge complete">Ready</span>
+            </div>
+
+            <div class="export-summary-list">
+              <div>
+                <span>Target equation</span>
+                <strong id="exportTargetSummary">—</strong>
+              </div>
+              <div>
+                <span>Starting model</span>
+                <strong id="exportInitialSummary">—</strong>
+              </div>
+              <div>
+                <span>Loss</span>
+                <strong id="exportLossSummary">—</strong>
+              </div>
+              <div>
+                <span>Optimizer</span>
+                <strong id="exportOptimizerSummary">—</strong>
+              </div>
+              <div>
+                <span>Epochs</span>
+                <strong id="exportEpochsSummary">—</strong>
+              </div>
+            </div>
+
+            <p class="export-detail-note">
+              The standalone file keeps the website's green training points exactly.
+              It adds a small read-only evaluation set beyond the training range so
+              you can inspect test loss without changing the gradient updates.
+            </p>
+          </div>
+        </aside>
+
+        <section class="card export-code-card">
+          <div class="export-code-header">
+            <div>
+              <p class="section-kicker">PYTORCH IMPLEMENTATION</p>
+              <h2>Your reproducible training script</h2>
+              <p id="exportCodeStatus" class="export-code-status">
+                Train a model to generate its PyTorch code.
+              </p>
+            </div>
+
+            <div class="export-actions">
+              <button id="copyCodeButton" class="secondary-action-button" type="button" disabled>
+                Copy code
+              </button>
+              <button id="downloadCodeButton" class="download-code-button" type="button" disabled>
+                <span aria-hidden="true">↓</span>
+                Download .py
+              </button>
+            </div>
+          </div>
+
+          <div class="code-viewer-shell">
+            <div class="code-viewer-toolbar">
+              <span id="exportFilename">quadratic_regression_experiment.py</span>
+              <span id="exportLineCount">— lines</span>
+            </div>
+            <pre class="code-viewer"><code id="exportCode"># Train a model first to generate a standalone PyTorch experiment.</code></pre>
+          </div>
+        </section>
+      </main>
+    </section>
+
+    <footer>
+      <span>Built with PyTorch + FastAPI + vanilla JavaScript.</span>
+      <span>Training learns parameters. Testing evaluates them without changing them.</span>
+    </footer>
+    </div>
+  </div>
+</body>
+</html>
